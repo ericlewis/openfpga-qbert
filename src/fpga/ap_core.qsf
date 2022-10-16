@@ -42,7 +42,7 @@
 # ========================
 set_global_assignment -name ORIGINAL_QUARTUS_VERSION 18.1.1
 set_global_assignment -name PROJECT_CREATION_TIME_DATE "21:31:36  JANUARY 22, 2020"
-set_global_assignment -name LAST_QUARTUS_VERSION "18.1.1 Lite Edition"
+set_global_assignment -name LAST_QUARTUS_VERSION "21.1.1 Lite Edition"
 set_global_assignment -name PROJECT_OUTPUT_DIRECTORY output_files
 set_global_assignment -name PRE_FLOW_SCRIPT_FILE "quartus_sh:apf/build_id_gen.tcl"
 set_global_assignment -name SMART_RECOMPILE ON
@@ -312,7 +312,7 @@ set_global_assignment -name PHYSICAL_SYNTHESIS_COMBO_LOGIC ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_DUPLICATION ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_REGISTER_RETIMING ON
 set_global_assignment -name PHYSICAL_SYNTHESIS_ASYNCHRONOUS_SIGNAL_PIPELINING ON
-set_global_assignment -name FITTER_EFFORT "AUTO FIT"
+set_global_assignment -name FITTER_EFFORT "STANDARD FIT"
 set_global_assignment -name ROUTER_LCELL_INSERTION_AND_LOGIC_DUPLICATION ON
 
 # Assembler Assignments
@@ -737,12 +737,47 @@ set_global_assignment -name PARTITION_COLOR 16764057 -section_id Top
 
 # end ENTITY(mf_pllbase_0002)
 # ---------------------------
-set_global_assignment -name QIP_FILE apf/apf.qip
 set_global_assignment -name VERILOG_FILE core/core_top.v
+set_global_assignment -name SYSTEMVERILOG_FILE core/pocket/sync_fifo.sv
+set_global_assignment -name SYSTEMVERILOG_FILE core/pocket/sound_i2s.sv
+set_global_assignment -name SYSTEMVERILOG_FILE core/pocket/data_loader.sv
+set_global_assignment -name SYSTEMVERILOG_FILE core/rtl/hvgen.sv
+set_global_assignment -name VERILOG_FILE core/rtl/sc01.v
+set_global_assignment -name VERILOG_FILE core/rtl/riot.v
+set_global_assignment -name VERILOG_FILE core/rtl/ram.v
+set_global_assignment -name VERILOG_FILE core/rtl/mylstar_board.v
+set_global_assignment -name VERILOG_FILE core/rtl/ma216_board.v
+set_global_assignment -name VERILOG_FILE core/rtl/dpram.v
+set_global_assignment -name VERILOG_FILE core/rtl/8088/mcl86_eu_core.v
+set_global_assignment -name VERILOG_FILE core/rtl/8088/i8088.v
+set_global_assignment -name VERILOG_FILE core/rtl/8088/eu_rom.v
+set_global_assignment -name VERILOG_FILE core/rtl/8088/biu_min.v
+set_global_assignment -name VERILOG_FILE core/rtl/8088/biu_max.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74379.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74374.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74367.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74298.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74283.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74245.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74244.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74189.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74166.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74161.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74157.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74139.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x74138.v
+set_global_assignment -name VERILOG_FILE core/rtl/7400/x7474.v
+set_global_assignment -name VERILOG_FILE core/rtl/6502/cpu6502.v
+set_global_assignment -name VERILOG_FILE core/rtl/6502/ALU.v
+set_global_assignment -name QIP_FILE apf/apf.qip
+set_global_assignment -name QIP_FILE apf/mf_ddio_bidir_12.qip
 set_global_assignment -name VERILOG_FILE core/core_bridge_cmd.v
 set_global_assignment -name SDC_FILE core/core_constraints.sdc
 set_global_assignment -name SIGNALTAP_FILE core/stp1.stp
 set_global_assignment -name QIP_FILE core/mf_pllbase.qip
 set_global_assignment -name SIP_FILE core/mf_pllbase.sip
+set_global_assignment -name NUM_PARALLEL_PROCESSORS 4
+set_global_assignment -name ROUTER_TIMING_OPTIMIZATION_LEVEL MAXIMUM
+set_global_assignment -name QII_AUTO_PACKED_REGISTERS NORMAL
 set_global_assignment -name SLD_FILE db/stp1_auto_stripped.stp
 set_instance_assignment -name PARTITION_HIERARCHY root_partition -to | -section_id Top

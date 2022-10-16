@@ -1,0 +1,52 @@
+{
+    "interact": {
+        "magic": "APF_VER_1",
+        "variables": [
+            {
+                "name": "Test Mode",
+                "id": 1,
+                "type": "check",
+                "enabled": true,
+                "address": "0x00000000",
+                "defaultval": 0,
+                "value": 1,
+                "writeonly": true,
+                "persist": true
+            },
+            {
+                "name": "Free Play",
+                "id": 5,
+                "type": "check",
+                "enabled": true,
+                "address": "0x00000040",
+                "defaultval": 0,
+                "value": 1,
+                "writeonly": true,
+                "persist": true
+            },
+            {
+                "name": "Auto Advance Round",
+                "id": 6,
+                "type": "check",
+                "enabled": true,
+                "address": "0x00000050",
+                "defaultval": 0,
+                "value": 1,
+                "writeonly": true,
+                "persist": true
+            },
+            {
+                "name": "Attract Mode Sound",
+                "id": 9,
+                "type": "check",
+                "enabled": true,
+                "address": "0x00000080",
+                "defaultval": 0,
+                "value": 1,
+                "writeonly": true,
+                "persist": true
+            }
+        ],
+        "messages": []
+    }
+}
