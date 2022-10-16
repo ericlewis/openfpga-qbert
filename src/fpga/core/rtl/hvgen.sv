@@ -17,7 +17,7 @@ always @(posedge vclk) begin
   case (hcnt)
     0: hb <= colfix ? 1'b1 : 1'b0; // keep hbl active if colfix
     3: hb <= 1'b0;
-    265: hb <= 1'b1;
+    260: hb <= 1'b1;
     283: hs <= 1'b0;
     303: hs <= 1'b1;
     317: begin

@@ -721,10 +721,10 @@ end
 // derive sound clock from clk_sys
 reg [5:0] cnt2;
 reg sound_clk;
-always @(posedge clk_sys) begin
+always @(posedge clk_40) begin
   cnt2 <= cnt2 + 6'd1;
   sound_clk <= 1'b0;
-  if (cnt2 == 6'd55) begin
+  if (cnt2 == 6'd43) begin
     cnt2 <= 6'd0;
     sound_clk <= 1'b1;
   end
