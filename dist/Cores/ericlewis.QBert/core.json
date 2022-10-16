@@ -4,7 +4,7 @@
         "metadata": {
             "platform_ids": ["qbert"],
             "shortname": "QBert",
-            "description": "TODO",
+            "description": "Q*Bert arcade core for Analogue Pocket ported from MiSTer - originally created by Pierco.",
             "author": "ericlewis",
             "url": "https://github.com/ericlewis/openFPGA-QBert",
             "version": "1.0.0",
