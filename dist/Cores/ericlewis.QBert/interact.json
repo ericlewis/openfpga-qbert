@@ -14,6 +14,17 @@
                 "persist": true
             },
             {
+                "name": "Diagonal Control",
+                "id": 0,
+                "type": "check",
+                "enabled": true,
+                "address": "0x00000090",
+                "defaultval": 0,
+                "value": 1,
+                "writeonly": true,
+                "persist": true
+            },
+            {
                 "name": "Free Play",
                 "id": 5,
                 "type": "check",

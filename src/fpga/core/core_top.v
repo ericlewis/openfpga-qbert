@@ -439,6 +439,7 @@ core_bridge_cmd icb (
 ///////////////////////////////////////////////
 
 reg cs_test_mode_enabled = 0;
+reg cs_diagonal_control  = 0;
 reg dip_1 = 0;
 reg dip_2 = 0;
 reg dip_3 = 0;
@@ -451,6 +452,7 @@ reg dip_8 = 0; // sound on in attract mode
 always @(posedge clk_74a) begin
   if(bridge_wr) begin
     casex(bridge_addr)
+    32'h00000090: cs_diagonal_control  <= bridge_wr_data[0]; 
     32'h00000000: cs_test_mode_enabled <= bridge_wr_data[0]; 
     32'h00000010: dip_1 <= bridge_wr_data[0]; 
     32'h00000020: dip_2 <= bridge_wr_data[0]; 
@@ -607,13 +609,23 @@ always @(*) begin
       joystick_0[15]         // p1
     };
 
-    IP4740 <= {
-      4'b0,
-      joystick_0[2],        // left
-      joystick_0[3],        // right
-      joystick_0[0],        // up
-      joystick_0[1]         // down
-    };
+    if (cs_diagonal_control) begin
+      IP4740 <= {
+          4'b0,
+          joystick_0[1] & joystick_0[2], // down + left
+          joystick_0[3] & joystick_0[0], // right + down
+          joystick_0[0] & joystick_0[2], // up + right
+          joystick_0[3] & joystick_0[1] // left + up
+      };
+    end else begin
+      IP4740 <= {
+        4'b0,
+        joystick_0[2],        // left
+        joystick_0[3],        // right
+        joystick_0[0],        // up
+        joystick_0[1]         // down
+      };
+    end
 end
 
 ///////////////////////////////////////////////
