@@ -620,10 +620,10 @@ always @(*) begin
     end else begin
       IP4740 <= {
         4'b0,
-        joystick_0[2],        // left
-        joystick_0[3],        // right
+        joystick_0[1],         // down
         joystick_0[0],        // up
-        joystick_0[1]         // down
+        joystick_0[2],        // left
+        joystick_0[3]        // right
       };
     end
 end
