@@ -477,8 +477,12 @@ wire  [7:0] ioctl_dout;
 reg   [7:0] ioctl_index = 0;
 
 always @(posedge clk_74a) begin
-    if (dataslot_requestwrite)     ioctl_download <= 1;
-    else if (dataslot_allcomplete) ioctl_download <= 0;
+    if (dataslot_requestwrite) begin
+        ioctl_download <= 1;
+        ioctl_index <= dataslot_requestwrite_id[7:0];
+    end else if (dataslot_allcomplete) begin
+        ioctl_download <= 0;
+    end
 end
 
 data_loader #(
@@ -556,17 +560,21 @@ HVGEN hvgen(
 // Audio
 ///////////////////////////////////////////////
 
-wire [7:0] audio;
+wire signed [15:0] audio_votrax;
+wire signed [15:0] audio_dac_mix;
+wire signed [15:0] audio_mix;
+
+assign audio_mix = ($signed(audio_votrax) >>> 1) + ($signed(audio_dac_mix) >>> 1);
 
 sound_i2s #(
-    .CHANNEL_WIDTH(8),
-    .SIGNED_INPUT (0)
+    .CHANNEL_WIDTH(16),
+    .SIGNED_INPUT (1)
 ) sound_i2s (
     .clk_74a(clk_74a),
     .clk_audio(clk_sys),
-    
-    .audio_l(audio),
-    .audio_r(audio),
+
+    .audio_l(audio_mix),
+    .audio_r(audio_mix),
 
     .audio_mclk(audio_mclk),
     .audio_lrck(audio_lrck),
@@ -633,7 +641,7 @@ end
 // Instance
 ///////////////////////////////////////////////
 
-wire rom_init = ioctl_download;
+wire rom_init = ioctl_download && (ioctl_index == 8'd0);
 wire reset = ~reset_n;
 
 reg  [7:0] IP1710;
@@ -683,12 +691,15 @@ mylstar_board mylstar_board
 );
 
 // audio board
-ma216_board ma216_board(
+ma216_board #(
+  .CLK_HZ(25_000_000)
+) ma216_board(
   .clk(sound_clk),
   .clk_sys(clk_sys),
   .reset(reset),
   .IP2720(OP2720),
-  .audio(audio),
+  .audio_votrax(audio_votrax),
+  .audio_dac(audio_dac_mix),
   .rom_init(rom_init),
   .rom_init_address(ioctl_addr),
   .rom_init_data(ioctl_dout)
@@ -734,10 +745,10 @@ end
 // derive sound clock from clk_sys
 reg [5:0] cnt2;
 reg sound_clk;
-always @(posedge clk_40) begin
+always @(posedge clk_sys) begin
   cnt2 <= cnt2 + 6'd1;
   sound_clk <= 1'b0;
-  if (cnt2 == 6'd43) begin
+  if (cnt2 == 6'd27) begin
     cnt2 <= 6'd0;
     sound_clk <= 1'b1;
   end

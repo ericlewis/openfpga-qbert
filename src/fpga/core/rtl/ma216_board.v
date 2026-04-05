@@ -1,27 +1,33 @@
-
-module ma216_board(
+module ma216_board #(
+  parameter integer CLK_HZ = 50_000_000
+) (
   input clk,
   input clk_sys,
   input reset,
 
   input [5:0] IP2720,
 
-  output [7:0] audio,
+  output signed [15:0] audio_votrax,
+  output signed [15:0] audio_dac,
 
   input rom_init,
   input [17:0] rom_init_address,
   input [7:0] rom_init_data
 );
 
-assign audio = U7_8;
+assign audio_votrax = SC01_audio;
+assign audio_dac = {~U7_8[7], U7_8[6:0], 8'h00};
 
 wire [15:0] AB;
 wire [7:0] DBo;
 wire WE, irq, U14_AR;
 wire [7:0] U4_O, U5_dout, U6_dout;
 wire [7:0] U15_D_O;
-reg [7:0] SB1, U11_18, U7_8;
+wire signed [15:0] SC01_audio;
 
+reg [7:0] SB1, U11_18, U7_8;
+reg [1:0] inflection_reg;
+reg stb;
 
 reg [7:0] DBi;
 
@@ -36,7 +42,7 @@ cpu6502 U3(
   .DO(DBo),
   .WE(WE),
   .IRQ(~irq),
-  .NMI(~U14_AR),
+  .NMI(U14_AR), // NMI reacts to rising edges on this core
   .RDY(1'b1)
 );
 
@@ -70,25 +76,30 @@ dpram #(.addr_width(11),.data_width(8)) U6 (
   .wdata(rom_init_data)
 );
 
-// U7 U8
+// U7/U8 latch the discrete DAC level.
 always @(posedge clk)
   if (~U4_O[1]) U7_8 <= DBo;
 
-// U11 U18
+// U11/U18 control the SC01-A DDS pitch.
 always @(posedge clk)
   if (~U4_O[3]) U11_18 <= DBo;
 
-reg votrax_clk; // todo: create 720KHz clock
 always @(posedge clk)
-  votrax_clk <= ~votrax_clk;
+  if (~U4_O[2]) inflection_reg <= DBo[7:6];
 
-sc01 U14(
-  .clk(votrax_clk), // 720KHz?
-  .PhCde(~DBo[5:0]),
-  .Pitch(),
-  .LatchCde(U4_O[2]),
-  .audio(),
-  .AR(U14_AR)
+always @(posedge clk)
+  stb <= ~U4_O[2] & WE;
+
+VotraxSound #(.CLK_HZ(CLK_HZ)) U14(
+  .clk(clk_sys),
+  .reset_n(~reset),
+  .phoneme(~DBo[5:0]),
+  .inflection(inflection_reg),
+  .stb(stb),
+  .ar(U14_AR),
+  .clk_dac(U11_18),
+  .audio_out(SC01_audio),
+  .audio_valid()
 );
 
 riot U15(
@@ -101,10 +112,10 @@ riot U15(
   .A(AB[6:0]),
   .D_I(DBo),
   .D_O(U15_D_O),
-  .PA_I({ &IP2720[3:0], 1'b0, ~IP2720 }),
+  .PA_I({~&IP2720[3:0], 1'b0, ~IP2720}),
   .PA_O(),
   .DDRA_O(),
-  .PB_I({ ~U14_AR, 1'b1, ~SB1[5:0] }),
+  .PB_I({~U14_AR, 1'b1, ~SB1[5:0]}),
   .PB_O(),
   .DDRB_O(),
   .IRQ_N(irq)
