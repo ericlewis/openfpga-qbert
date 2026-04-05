@@ -452,16 +452,16 @@ reg dip_8 = 0; // sound on in attract mode
 always @(posedge clk_74a) begin
   if(bridge_wr) begin
     casex(bridge_addr)
-    32'h00000090: cs_diagonal_control  <= bridge_wr_data[0]; 
-    32'h00000000: cs_test_mode_enabled <= bridge_wr_data[0]; 
-    32'h00000010: dip_1 <= bridge_wr_data[0]; 
-    32'h00000020: dip_2 <= bridge_wr_data[0]; 
-    32'h00000030: dip_3 <= bridge_wr_data[0]; 
-    32'h00000040: dip_4 <= bridge_wr_data[0]; 
-    32'h00000050: dip_5 <= bridge_wr_data[0]; 
-    32'h00000060: dip_6 <= bridge_wr_data[0]; 
-    32'h00000070: dip_7 <= bridge_wr_data[0]; 
-    32'h00000080: dip_8 <= bridge_wr_data[0]; 
+    32'h00000090: cs_diagonal_control  <= bridge_wr_data[0];
+    32'h00000000: cs_test_mode_enabled <= bridge_wr_data[0];
+    32'h00000010: dip_1 <= bridge_wr_data[0];
+    32'h00000020: dip_2 <= bridge_wr_data[0];
+    32'h00000030: dip_3 <= bridge_wr_data[0];
+    32'h00000040: dip_4 <= bridge_wr_data[0];
+    32'h00000050: dip_5 <= bridge_wr_data[0];
+    32'h00000060: dip_6 <= bridge_wr_data[0];
+    32'h00000070: dip_7 <= bridge_wr_data[0];
+    32'h00000080: dip_8 <= bridge_wr_data[0];
     endcase
   end
 end
@@ -587,6 +587,10 @@ sound_i2s #(
 
 wire [15:0] joystick_0;
 wire [15:0] joystick_1;
+wire move_up;
+wire move_down;
+wire move_left;
+wire move_right;
 
 synch_3 #(
     .WIDTH(16)
@@ -604,35 +608,40 @@ synch_3 #(
     clk_sys
 );
 
+assign move_up = joystick_0[0] | joystick_0[6];
+assign move_down = joystick_0[1] | joystick_0[5];
+assign move_left = joystick_0[2] | joystick_0[7];
+assign move_right = joystick_0[3] | joystick_0[4];
+
 always @(*) begin
 
     IPA1J2 <= 8'd0;
 
     IP1710 <= {
-      joystick_0[4],         // test 1
+      joystick_0[8],         // test 1 / service select (L)
       ~cs_test_mode_enabled, // test 2 (low for entering test mode)
       2'b0,
       joystick_0[14],        // coin 1
       1'b0,                  // coin 2
-      joystick_0[6],         // p2
+      joystick_0[9],         // p2 start (R)
       joystick_0[15]         // p1
     };
 
     if (cs_diagonal_control) begin
       IP4740 <= {
-          4'b0,
-          joystick_0[1] & joystick_0[2], // down + left
-          joystick_0[3] & joystick_0[0], // right + down
-          joystick_0[0] & joystick_0[2], // up + right
-          joystick_0[3] & joystick_0[1] // left + up
+        4'b0,
+          move_down & move_left,
+          move_right & move_up,
+          move_up & move_left,
+          move_right & move_down
       };
     end else begin
       IP4740 <= {
         4'b0,
-        joystick_0[1],         // down
-        joystick_0[0],        // up
-        joystick_0[2],        // left
-        joystick_0[3]        // right
+        move_down,
+        move_up,
+        move_left,
+        move_right
       };
     end
 end
