@@ -478,6 +478,7 @@ wire        ioctl_wr;
 wire [24:0] ioctl_addr;
 wire  [7:0] ioctl_dout;
 reg   [7:0] ioctl_index = 0;
+reg         nvram_readback = 0;
 
 always @(posedge clk_74a) begin
     if (dataslot_requestwrite) begin
@@ -485,6 +486,14 @@ always @(posedge clk_74a) begin
         ioctl_index <= dataslot_requestwrite_id[7:0];
     end else if (dataslot_allcomplete) begin
         ioctl_download <= 0;
+    end
+end
+
+always @(posedge clk_74a) begin
+    if (dataslot_allcomplete) begin
+        nvram_readback <= 0;
+    end else if (dataslot_requestread && (dataslot_requestread_id[7:0] == 8'd10)) begin
+        nvram_readback <= 1;
     end
 end
 
@@ -517,6 +526,22 @@ wire [11:0] sd_addr_in;
 wire [11:0] sd_addr_out;
 wire [7:0]  nvram_data_in;
 wire [7:0]  nvram_data_out;
+wire        nvram_restore_74a = ioctl_download && (ioctl_index == 8'd10);
+wire        nvram_access_74a = nvram_restore_74a | nvram_readback;
+wire        nvram_restore;
+wire        nvram_access;
+
+synch_3 nvram_restore_sync(
+    nvram_restore_74a,
+    nvram_restore,
+    clk_sys
+);
+
+synch_3 nvram_access_sync(
+    nvram_access_74a,
+    nvram_access,
+    clk_sys
+);
 
 data_unloader #(
     .ADDRESS_MASK_UPPER_4(4'h2),
@@ -744,6 +769,8 @@ mylstar_board mylstar_board
   .rom_init_address(ioctl_addr),
   .rom_init_data(ioctl_dout),
   .rom_index(ioctl_index),
+  .nvram_access(nvram_access),
+  .nvram_restore(nvram_restore),
   .nvram_wr(sd_wr),
   .nvram_rw_addr(nvram_rw_addr),
   .nvram_data_in(nvram_data_in),

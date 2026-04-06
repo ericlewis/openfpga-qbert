@@ -32,6 +32,8 @@ module mylstar_board
   input [7:0] rom_init_data,
   input [7:0] rom_index,
 
+  input         nvram_access,
+  input         nvram_restore,
   input         nvram_wr,
   input  [11:0] nvram_rw_addr,
   input  [7:0] nvram_data_in,
@@ -120,6 +122,7 @@ wire nVV0 = K15_10;
 
 wire [7:0] P1_B11 = IP1710;
 wire [7:0] P1_B14 = IP4740;
+wire cpu_ready;
 
 wire [7:0] A1J2 = ~B10_Y[2] ? IPA1J2 : 8'd0;  
 
@@ -150,7 +153,7 @@ i8088 B1(
   .CORE_CLK(CPU_CORE_CLK),
   .CLK(CPU_CLK),
   .RESET(reset),
-  .READY(1'b1),
+  .READY(cpu_ready),
   .INTR(0),
   .NMI(nmi),
   .INTA_n(INTA_n),
@@ -222,14 +225,14 @@ wire [7:0] B14 = ~B10_Y[4] ? P1_B14 : 8'd0;
 
 reg        nvram_init = 1'b1;
 reg [11:0] nvram_init_addr = 12'd0;
-wire c5_init_we = nvram_init & ~nvram_init_addr[11];
-wire c6_init_we = nvram_init & nvram_init_addr[11];
+assign cpu_ready = ~(nvram_init | nvram_access);
+wire c5_init_we = nvram_init & ~nvram_access & ~nvram_init_addr[11];
+wire c6_init_we = nvram_init & ~nvram_access & nvram_init_addr[11];
 
 always @(posedge clk_sys) begin
-  if (reset) begin
-    nvram_init <= 1'b1;
-    nvram_init_addr <= 12'd0;
-  end else if (nvram_init) begin
+  if (nvram_restore) begin
+    nvram_init <= 1'b0;
+  end else if (nvram_init && ~nvram_access) begin
     if (nvram_init_addr == 12'hFFF)
       nvram_init <= 1'b0;
     else
@@ -237,26 +240,26 @@ always @(posedge clk_sys) begin
   end
 end
 
-wire c5_cpu_we = ~B6_Y[0] & ~B4_Y[0];
-wire c6_cpu_we = ~B6_Y[1] & ~B4_Y[0];
-wire c5_save_we = nvram_wr & ~nvram_rw_addr[11];
-wire c6_save_we = nvram_wr & nvram_rw_addr[11];
+wire c5_cpu_we = cpu_ready & ~B6_Y[0] & ~B4_Y[0];
+wire c6_cpu_we = cpu_ready & ~B6_Y[1] & ~B4_Y[0];
+wire c5_save_we = nvram_access & nvram_wr & ~nvram_rw_addr[11];
+wire c6_save_we = nvram_access & nvram_wr & nvram_rw_addr[11];
 wire c5_we = c5_init_we | c5_cpu_we | c5_save_we;
 wire c6_we = c6_init_we | c6_cpu_we | c6_save_we;
 
 wire [10:0] c5_rw_addr = c5_init_we ? nvram_init_addr[10:0] :
-                         c5_cpu_we ? addr[10:0] :
-                         nvram_rw_addr[10:0];
+                         nvram_access ? nvram_rw_addr[10:0] :
+                         addr[10:0];
 wire [10:0] c6_rw_addr = c6_init_we ? nvram_init_addr[10:0] :
-                         c6_cpu_we ? addr[10:0] :
-                         nvram_rw_addr[10:0];
+                         nvram_access ? nvram_rw_addr[10:0] :
+                         addr[10:0];
 
 wire [7:0] c5_wdata = c5_init_we ? 8'hff :
-                      c5_cpu_we ? cpu_dout :
-                      nvram_data_in;
+                      nvram_access ? nvram_data_in :
+                      cpu_dout;
 wire [7:0] c6_wdata = c6_init_we ? 8'hff :
-                      c6_cpu_we ? cpu_dout :
-                      nvram_data_in;
+                      nvram_access ? nvram_data_in :
+                      cpu_dout;
 
 wire [7:0] C5_Q_b;
 wire [7:0] C6_Q_b;
