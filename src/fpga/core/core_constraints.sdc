@@ -1,17 +1,19 @@
 #
 # user core constraints
 #
-# put your clock groups in here as well as any net assignments
+# keep internal closure separate from external APF/Pocket board I/O timing.
 #
 
-set_clock_groups -asynchronous \
- -group { bridge_spiclk } \
- -group { clk_74a } \
- -group { clk_74b } \
- -group { ic|mp1|mf_pllbase_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|mp1|mf_pllbase_inst|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|mp1|mf_pllbase_inst|altera_pll_i|general[2].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|mp1|mf_pllbase_inst|altera_pll_i|general[3].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|mp1|mf_pllbase_inst|altera_pll_i|general[4].gpll~PLL_OUTPUT_COUNTER|divclk } 
+derive_clock_uncertainty
 
- derive_clock_uncertainty
+set_clock_groups -asynchronous \
+ -group [get_clocks {bridge_spiclk}] \
+ -group [get_clocks {clk_74a}] \
+ -group [get_clocks {clk_74b}] \
+ -group [get_clocks {*|mp1|*}]
+
+# Ignore unconstrained package-boundary I/O timing. These ports do not have an
+# external timing contract in this project, so closure should focus on internal
+# reg-to-reg timing.
+set_false_path -from [remove_from_collection [all_inputs] [get_ports {clk_74a clk_74b bridge_spiclk}]]
+set_false_path -to [all_outputs]
