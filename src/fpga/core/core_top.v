@@ -323,6 +323,9 @@ always @(*) begin
         bridge_rd_data <= cmd_bridge_rd_data;
     end
     endcase
+    if (bridge_addr[31:28] == 4'h2) begin
+      bridge_rd_data <= sd_read_data;
+    end
 end
 
 
@@ -528,6 +531,53 @@ data_loader #(
 );
 
 ///////////////////////////////////////////////
+// NVRAM
+///////////////////////////////////////////////
+
+wire [31:0] sd_read_data;
+wire sd_rd;
+wire sd_wr;
+wire [11:0] nvram_rw_addr = sd_wr ? sd_addr_in : sd_addr_out;
+wire [11:0] sd_addr_in;
+wire [11:0] sd_addr_out;
+wire [7:0]  nvram_data_in;
+wire [7:0]  nvram_data_out;
+
+data_unloader #(
+    .ADDRESS_MASK_UPPER_4(4'h2),
+    .ADDRESS_SIZE(12)
+) save_data_unloader (
+    .clk_74a(clk_74a),
+    .clk_memory(clk_sys),
+
+    .bridge_rd(bridge_rd),
+    .bridge_endian_little(bridge_endian_little),
+    .bridge_addr(bridge_addr),
+    .bridge_rd_data(sd_read_data),
+
+    .read_en(sd_rd),
+    .read_addr(sd_addr_out),
+    .read_data(nvram_data_out)
+);
+
+data_loader #(
+    .ADDRESS_MASK_UPPER_4(4'h2),
+    .ADDRESS_SIZE(12)
+) save_data_loader (
+    .clk_74a(clk_74a),
+    .clk_memory(clk_sys),
+
+    .bridge_wr(bridge_wr),
+    .bridge_endian_little(bridge_endian_little),
+    .bridge_addr(bridge_addr),
+    .bridge_wr_data(bridge_wr_data),
+
+    .write_en(sd_wr),
+    .write_addr(sd_addr_in),
+    .write_data(nvram_data_in)
+);
+
+///////////////////////////////////////////////
 // Video
 ///////////////////////////////////////////////
 
@@ -719,7 +769,11 @@ mylstar_board mylstar_board
   .rom_init_address(ioctl_addr),
   .rom_init_data(ioctl_dout),
   .rom_index(ioctl_index),
-  
+  .nvram_wr(sd_wr),
+  .nvram_rw_addr(nvram_rw_addr),
+  .nvram_data_in(nvram_data_in),
+  .nvram_data_out(nvram_data_out),
+
   .vflip(1'b0),
   .hflip(1'b0)
 );

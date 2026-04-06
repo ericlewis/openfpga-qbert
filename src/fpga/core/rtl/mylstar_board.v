@@ -31,6 +31,11 @@ module mylstar_board
   input [17:0] rom_init_address,
   input [7:0] rom_init_data,
   input [7:0] rom_index,
+
+  input         nvram_wr,
+  input  [11:0] nvram_rw_addr,
+  input  [7:0] nvram_data_in,
+  output [7:0] nvram_data_out,
   
   input vflip,
   input hflip
@@ -215,31 +220,72 @@ wire [7:0] B12 = ~B10_Y[0] ? dip_switch : 8'd0;
 
 wire [7:0] B14 = ~B10_Y[4] ? P1_B14 : 8'd0;
 
-// TODO: load from MRA and fill with $FF if empty
-wire [10:0] nvram_addr = rom_init ? rom_init_address[10:0] : addr[10:0];
-wire [7:0] nvram_din = rom_init ? 8'hff : cpu_dout;
-wire nvram_wr = rom_init ? 1'b0 : B4_Y[0];
+reg        nvram_init = 1'b1;
+reg [11:0] nvram_init_addr = 12'd0;
+wire c5_init_we = nvram_init & ~nvram_init_addr[11];
+wire c6_init_we = nvram_init & nvram_init_addr[11];
+
+always @(posedge clk_sys) begin
+  if (reset) begin
+    nvram_init <= 1'b1;
+    nvram_init_addr <= 12'd0;
+  end else if (nvram_init) begin
+    if (nvram_init_addr == 12'hFFF)
+      nvram_init <= 1'b0;
+    else
+      nvram_init_addr <= nvram_init_addr + 1'd1;
+  end
+end
+
+wire c5_cpu_we = ~B6_Y[0] & ~B4_Y[0];
+wire c6_cpu_we = ~B6_Y[1] & ~B4_Y[0];
+wire c5_save_we = nvram_wr & ~nvram_rw_addr[11];
+wire c6_save_we = nvram_wr & nvram_rw_addr[11];
+wire c5_we = c5_init_we | c5_cpu_we | c5_save_we;
+wire c6_we = c6_init_we | c6_cpu_we | c6_save_we;
+
+wire [10:0] c5_rw_addr = c5_init_we ? nvram_init_addr[10:0] :
+                         c5_cpu_we ? addr[10:0] :
+                         nvram_rw_addr[10:0];
+wire [10:0] c6_rw_addr = c6_init_we ? nvram_init_addr[10:0] :
+                         c6_cpu_we ? addr[10:0] :
+                         nvram_rw_addr[10:0];
+
+wire [7:0] c5_wdata = c5_init_we ? 8'hff :
+                      c5_cpu_we ? cpu_dout :
+                      nvram_data_in;
+wire [7:0] c6_wdata = c6_init_we ? 8'hff :
+                      c6_cpu_we ? cpu_dout :
+                      nvram_data_in;
+
+wire [7:0] C5_Q_b;
+wire [7:0] C6_Q_b;
+assign nvram_data_out = nvram_rw_addr[11] ? C6_Q_b : C5_Q_b;
 
 // nvram 1
-ram #(.addr_width(11),.data_width(8)) C5 (
+dpram #(.addr_width(11),.data_width(8)) C5 (
   .clk(clk_sys),
-  .din(nvram_din),
-  .addr(nvram_addr),
-  .cs(rom_init ? 1'b0 : B6_Y[0]),
+  .addr(addr[10:0]),
+  .dout(C5_Q),
+  .ce(B6_Y[0]),
   .oe(B4_Y[2]),
-  .wr(nvram_wr),
-  .Q(C5_Q)
+  .we(c5_we),
+  .waddr(c5_rw_addr),
+  .wdata(c5_wdata),
+  .doutb(C5_Q_b)
 );
 
 // nvram 2
-ram #(.addr_width(11),.data_width(8)) C6 (
+dpram #(.addr_width(11),.data_width(8)) C6 (
   .clk(clk_sys),
-  .din(nvram_din),
-  .addr(nvram_addr),
-  .cs(rom_init ? 1'b0 : B6_Y[1]),
+  .addr(addr[10:0]),
+  .dout(C6_Q),
+  .ce(B6_Y[1]),
   .oe(B4_Y[2]),
-  .wr(nvram_wr),
-  .Q(C6_Q)
+  .we(c6_we),
+  .waddr(c6_rw_addr),
+  .wdata(c6_wdata),
+  .doutb(C6_Q_b)
 );
 
 ram #(.addr_width(11),.data_width(8)) C7 (

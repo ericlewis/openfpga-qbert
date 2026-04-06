@@ -12,7 +12,7 @@ Additional details
 
 **NVRAM:**
 
-- Not implemented - NVRAM should be C5/C6 on schematics.
+- Implemented via the original C5/C6 board RAM and exposed as a nonvolatile APF save-data slot.
 
 **Ports:**
 

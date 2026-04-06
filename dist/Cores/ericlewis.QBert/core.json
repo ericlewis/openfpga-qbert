@@ -7,8 +7,8 @@
             "description": "Q*Bert arcade core for Analogue Pocket ported from MiSTer - originally created by Pierco.",
             "author": "ericlewis",
             "url": "https://github.com/ericlewis/openFPGA-QBert",
-            "version": "1.1.0",
-            "date_release": "2022-10-17"
+            "version": "1.2.0",
+            "date_release": "2026-04-06"
         },
         "framework": {
             "target_product": "Analogue Pocket",

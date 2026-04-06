@@ -741,6 +741,7 @@ set_global_assignment -name VERILOG_FILE core/core_top.v
 set_global_assignment -name SYSTEMVERILOG_FILE core/pocket/sync_fifo.sv
 set_global_assignment -name SYSTEMVERILOG_FILE core/pocket/sound_i2s.sv
 set_global_assignment -name SYSTEMVERILOG_FILE core/pocket/data_loader.sv
+set_global_assignment -name SYSTEMVERILOG_FILE core/pocket/data_unloader.sv
 set_global_assignment -name SYSTEMVERILOG_FILE core/rtl/hvgen.sv
 set_global_assignment -name VHDL_FILE core/rtl/sc01a/sc01a_coeff_scales_pkg.vhd
 set_global_assignment -name VHDL_FILE core/rtl/sc01a/sc01_rom.vhd
