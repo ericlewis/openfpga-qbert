@@ -1,5 +1,8 @@
 name: Build Q*Bert Core
 
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 permissions:
   contents: write
 
@@ -26,7 +29,7 @@ jobs:
           df -h /
 
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Build Pocket core
         run: |
@@ -50,7 +53,7 @@ jobs:
           cp src/fpga/output_files/bitstream.rbf_r release/Cores/ericlewis.QBert/bitstream.rbf_r
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: ericlewis.QBert-pocket
           path: release/
@@ -62,12 +65,12 @@ jobs:
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           fetch-depth: 0
 
       - name: Download build artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v5
         with:
           name: ericlewis.QBert-pocket
           path: release/
