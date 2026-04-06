@@ -353,24 +353,22 @@ end
 
     wire            dataslot_allcomplete;
 
-    wire            savestate_supported = 1'b1;
-    wire    [31:0]  savestate_addr = 32'd0;
-    wire    [31:0]  savestate_size = 32'd0;
-    wire    [31:0]  savestate_maxloadsize = 32'd0;
+    wire            savestate_supported;
+    wire    [31:0]  savestate_addr;
+    wire    [31:0]  savestate_size;
+    wire    [31:0]  savestate_maxloadsize;
 
     wire            savestate_start;
-    reg             savestate_start_ack = 0;
-    wire            savestate_start_busy = 1'b0;
-    reg             savestate_start_ok = 0;
-    wire            savestate_start_err = 1'b0;
+    wire            savestate_start_ack;
+    wire            savestate_start_busy;
+    wire            savestate_start_ok;
+    wire            savestate_start_err;
 
     wire            savestate_load;
-    reg             savestate_load_ack = 0;
-    wire            savestate_load_busy = 1'b0;
-    reg             savestate_load_ok = 0;
-    wire            savestate_load_err = 1'b0;
-    reg             savestate_start_d = 0;
-    reg             savestate_load_d = 0;
+    wire            savestate_load_ack;
+    wire            savestate_load_busy;
+    wire            savestate_load_ok;
+    wire            savestate_load_err;
     
     wire            osnotify_inmenu;
 
@@ -438,29 +436,6 @@ core_bridge_cmd icb (
     .datatable_q            ( datatable_q ),
 
 );
-
-always @(posedge clk_74a) begin
-    savestate_start_ack <= 0;
-    savestate_load_ack <= 0;
-
-    savestate_start_d <= savestate_start;
-    savestate_load_d <= savestate_load;
-
-    if (savestate_start && !savestate_start_d) begin
-        savestate_start_ack <= 1;
-        savestate_start_ok <= 1;
-    end
-
-    if (savestate_load && !savestate_load_d) begin
-        savestate_load_ack <= 1;
-        savestate_load_ok <= 1;
-    end
-
-    if (!reset_n) begin
-        savestate_start_ok <= 0;
-        savestate_load_ok <= 0;
-    end
-end
 
 ///////////////////////////////////////////////
 // Settings
@@ -805,17 +780,10 @@ wire    clk_40;
 wire    core_clk;
 
 wire    pll_core_locked;
-reg [3:0] pll_reset_count = 4'hF;
-wire pll_reset = |pll_reset_count;
-
-always @(posedge clk_74a) begin
-  if (pll_reset_count != 4'd0)
-    pll_reset_count <= pll_reset_count - 1'd1;
-end
 
 mf_pllbase mp1 (
   .refclk         ( clk_74a ),
-  .rst            ( pll_reset ),
+  .rst            ( 0 ),
 
   .outclk_0       ( clk_core_12288 ),
   .outclk_1       ( clk_core_12288_90deg ),
