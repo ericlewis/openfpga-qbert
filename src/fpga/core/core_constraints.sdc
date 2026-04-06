@@ -15,5 +15,6 @@ set_clock_groups -asynchronous \
 # Ignore unconstrained package-boundary I/O timing. These ports do not have an
 # external timing contract in this project, so closure should focus on internal
 # reg-to-reg timing.
-set_false_path -from [remove_from_collection [all_inputs] [get_ports {clk_74a clk_74b bridge_spiclk}]]
-set_false_path -to [all_outputs]
+set pocket_io_ports [remove_from_collection [get_ports *] [get_ports {clk_74a clk_74b bridge_spiclk}]]
+set_false_path -from $pocket_io_ports
+set_false_path -to $pocket_io_ports

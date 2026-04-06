@@ -751,10 +751,17 @@ wire    clk_40;
 wire    core_clk;
 
 wire    pll_core_locked;
+reg [3:0] pll_reset_count = 4'hF;
+wire pll_reset = |pll_reset_count;
+
+always @(posedge clk_74a) begin
+  if (pll_reset_count != 4'd0)
+    pll_reset_count <= pll_reset_count - 1'd1;
+end
 
 mf_pllbase mp1 (
   .refclk         ( clk_74a ),
-  .rst            ( 0 ),
+  .rst            ( pll_reset ),
 
   .outclk_0       ( clk_core_12288 ),
   .outclk_1       ( clk_core_12288_90deg ),
