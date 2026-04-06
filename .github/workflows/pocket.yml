@@ -15,8 +15,14 @@ on:
       - '.github/workflows/pocket.yml'
   workflow_dispatch:
 
+concurrency:
+  group: qbert-pocket-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     steps:
@@ -38,7 +44,7 @@ jobs:
           df -h /
 
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Build Pocket core
         run: |
@@ -62,24 +68,26 @@ jobs:
           cp src/fpga/output_files/bitstream.rbf_r release/Cores/ericlewis.QBert/bitstream.rbf_r
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v6
+        uses: actions/upload-artifact@v7
         with:
           name: ericlewis.QBert-pocket
           path: release/
           retention-days: 30
 
   release:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     needs: build
+    timeout-minutes: 60
     runs-on: ubuntu-latest
 
     steps:
       - name: Check out repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
 
       - name: Download build artifact
-        uses: actions/download-artifact@v5
+        uses: actions/download-artifact@v8
         with:
           name: ericlewis.QBert-pocket
           path: release/
