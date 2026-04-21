@@ -1,17 +1,13 @@
 #
 # user core constraints
 #
-# put your clock groups in here as well as any net assignments
+# Keep the clk_74a PLL family synchronous. `derive_pll_clocks` in
+# apf_constraints.sdc already creates the generated clocks for `mp1`.
 #
 
-set_clock_groups -asynchronous \
- -group { bridge_spiclk } \
- -group { clk_74a } \
- -group { clk_74b } \
- -group { ic|mp1|mf_pllbase_inst|altera_pll_i|general[0].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|mp1|mf_pllbase_inst|altera_pll_i|general[1].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|mp1|mf_pllbase_inst|altera_pll_i|general[2].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|mp1|mf_pllbase_inst|altera_pll_i|general[3].gpll~PLL_OUTPUT_COUNTER|divclk } \
- -group { ic|mp1|mf_pllbase_inst|altera_pll_i|general[4].gpll~PLL_OUTPUT_COUNTER|divclk } 
+derive_clock_uncertainty
 
- derive_clock_uncertainty
+set_clock_groups -asynchronous \
+ -group [get_clocks {bridge_spiclk}] \
+ -group [get_clocks {clk_74b}] \
+ -group [get_clocks {clk_74a *|mp1|*}]

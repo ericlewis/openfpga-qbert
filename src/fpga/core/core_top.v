@@ -224,16 +224,15 @@ input   wire    [15:0]  cont4_trig
     
 );
 
-// not using the IR port, so turn off both the LED, and
-// disable the receive circuit to save power
+// Q*Bert does not use the IR port, so keep TX low and disable RX.
 assign port_ir_tx = 0;
 assign port_ir_rx_disable = 1;
 
 // bridge endianness
 assign bridge_endian_little = 0;
 
-// cart is unused, so set all level translators accordingly
-// directions are 0:IN, 1:OUT
+// The cartridge interface is unused. Leave data banks high-Z and drive the
+// control pins to their idle state through the translators.
 assign cart_tran_bank3 = 8'hzz;
 assign cart_tran_bank3_dir = 1'b0;
 assign cart_tran_bank2 = 8'hzz;
@@ -248,7 +247,7 @@ assign cart_pin30_pwroff_reset = 1'b0;  // hardware can control this
 assign cart_tran_pin31 = 1'bz;      // input
 assign cart_tran_pin31_dir = 1'b0;  // input
 
-// link port is input only
+// The link port is unused; leave the translators in a safe idle/input state.
 assign port_tran_so = 1'bz;
 assign port_tran_so_dir = 1'b0;     // SO is output only
 assign port_tran_si = 1'bz;
@@ -258,7 +257,7 @@ assign port_tran_sck_dir = 1'b0;    // clock direction can change
 assign port_tran_sd = 1'bz;
 assign port_tran_sd_dir = 1'b0;     // SD is input and not used
 
-// tie off the rest of the pins we are not using
+// Tie off the remaining unused Pocket-facing I/O.
 assign cram0_a = 'h0;
 assign cram0_dq = {16{1'bZ}};
 assign cram0_clk = 0;
@@ -306,19 +305,10 @@ assign aux_scl = 1'bZ;
 assign vpll_feed = 1'bZ;
 
 
-// for bridge write data, we just broadcast it to all bus devices
-// for bridge read data, we have to mux it
-// add your own devices here
+// Bridge reads come from either the APF command window or the NVRAM slot.
 always @(*) begin
+    bridge_rd_data <= 32'd0;
     casex(bridge_addr)
-    default: begin
-        bridge_rd_data <= 0;
-    end
-    32'h10xxxxxx: begin
-        // example
-        // bridge_rd_data <= example_device_data;
-        bridge_rd_data <= 0;
-    end
     32'hF8xxxxxx: begin
         bridge_rd_data <= cmd_bridge_rd_data;
     end
@@ -353,24 +343,24 @@ end
 
     wire            dataslot_allcomplete;
 
-    wire            savestate_supported;
-    wire    [31:0]  savestate_addr;
-    wire    [31:0]  savestate_size;
-    wire    [31:0]  savestate_maxloadsize;
+    // Full savestates are not implemented for this core. Keep the host-facing
+    // interface deterministic so Pocket queries do not observe X values.
+    wire            savestate_supported = 1'b0;
+    wire    [31:0]  savestate_addr = 32'd0;
+    wire    [31:0]  savestate_size = 32'd0;
+    wire    [31:0]  savestate_maxloadsize = 32'd0;
 
     wire            savestate_start;
-    wire            savestate_start_ack;
-    wire            savestate_start_busy;
-    wire            savestate_start_ok;
-    wire            savestate_start_err;
+    wire            savestate_start_ack = savestate_start;
+    wire            savestate_start_busy = 1'b0;
+    wire            savestate_start_ok = 1'b0;
+    wire            savestate_start_err = savestate_start;
 
     wire            savestate_load;
-    wire            savestate_load_ack;
-    wire            savestate_load_busy;
-    wire            savestate_load_ok;
-    wire            savestate_load_err;
-    
-    wire            osnotify_inmenu;
+    wire            savestate_load_ack = savestate_load;
+    wire            savestate_load_busy = 1'b0;
+    wire            savestate_load_ok = 1'b0;
+    wire            savestate_load_err = savestate_load;
 
 // bridge target commands
 // synchronous to clk_74a
@@ -428,7 +418,7 @@ core_bridge_cmd icb (
     .savestate_load_ok      ( savestate_load_ok ),
     .savestate_load_err     ( savestate_load_err ),
 
-    .osnotify_inmenu        ( osnotify_inmenu ),
+    .osnotify_inmenu        ( ),
     
     .datatable_addr         ( datatable_addr ),
     .datatable_wren         ( datatable_wren ),

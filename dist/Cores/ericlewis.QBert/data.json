@@ -15,7 +15,7 @@
                 "name": "NVRAM",
                 "required": false,
                 "nonvolatile": true,
-                "parameters": "0x84",
+                "parameters": 132,
                 "extensions": ["sav"],
                 "filename": "qbert_nvram.sav",
                 "address": "0x20000000",
